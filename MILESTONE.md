@@ -43,7 +43,7 @@ Security, performance, and resource-limiting mechanisms.
 - [ ] Memory usage limit (heap counter)
 - [ ] Infinite loop / deadlock detection
 - [ ] CLI options like `brick run --timeout 200ms`
-- [ ] `examples/benchmarks/` folder with fib, heavy-loop, etc.
+- [x] `examples/benchmarks/` folder with fib, heavy-loop, etc.
 
 ### Extras:
 - [ ] Step-based execution engine (`step "deploy" {}` → for CLI/Graph UI)

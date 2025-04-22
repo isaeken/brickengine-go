@@ -1,0 +1,9 @@
+let arr = []
+let i = 0
+
+while i < 100000 {
+  arr[i] = i
+  i = i + 1
+}
+
+return arr[99999]

@@ -5,7 +5,10 @@ import (
 	"github.com/isaeken/brickengine-go/runtime"
 	"os"
 	"path/filepath"
+	rn "runtime"
+	"runtime/debug"
 	"strings"
+	"time"
 )
 
 const (
@@ -15,7 +18,7 @@ const (
 )
 
 func main() {
-	scriptDirs := []string{"examples/basic", "examples/network"}
+	scriptDirs := []string{"examples/basic", "examples/network", "examples/benchmarks"}
 	templateDirs := []string{"examples/templates"}
 	total := 0
 	passed := 0
@@ -30,8 +33,19 @@ func main() {
 			ctx := runtime.Context{}
 			funcs := runtime.DefaultFunctions()
 
+			debug.FreeOSMemory()
+			var memStart, memEnd rn.MemStats
+			rn.ReadMemStats(&memStart)
+
+			start := time.Now()
 			result, err := runtime.RunScript(string(content), ctx, funcs)
-			status := getStatus(err)
+			duration := time.Since(start)
+
+			rn.ReadMemStats(&memEnd)
+
+			memUsage := memEnd.Alloc - memStart.Alloc
+
+			status := getStatus(err, duration, memUsage)
 			fmt.Println(status)
 
 			if err == nil {
@@ -51,8 +65,19 @@ func main() {
 			ctx := runtime.Context{}
 			funcs := runtime.DefaultFunctions()
 
+			debug.FreeOSMemory()
+			var memStart, memEnd rn.MemStats
+			rn.ReadMemStats(&memStart)
+
+			start := time.Now()
 			result, err := runtime.RunTemplate(string(content), ctx, funcs)
-			status := getStatus(err)
+			duration := time.Since(start)
+
+			rn.ReadMemStats(&memEnd)
+
+			memUsage := memEnd.Alloc - memStart.Alloc
+
+			status := getStatus(err, duration, memUsage)
 			fmt.Println(status)
 
 			if err == nil {
@@ -68,11 +93,23 @@ func main() {
 	}
 }
 
-func getStatus(err error) string {
+func getStatus(err error, duration time.Duration, memBytes uint64) string {
+	memKB := float64(memBytes) / 1024.0
+	timeStr := formatDuration(duration)
+	memStr := fmt.Sprintf("%.2f KB", memKB)
+
 	if err != nil {
-		return fmt.Sprintf("%s❌ Failed: %v%s", red, err, reset)
+		return fmt.Sprintf("%s❌ Failed: %v%s [%s, %s]", red, err, reset, timeStr, memStr)
 	}
-	return fmt.Sprintf("%s✅ Passed%s", green, reset)
+	return fmt.Sprintf("%s✅ Passed%s [%s, %s]", green, reset, timeStr, memStr)
+}
+
+func formatDuration(d time.Duration) string {
+	ms := d.Milliseconds()
+	if ms < 1 {
+		return fmt.Sprintf("%dµs", d.Microseconds())
+	}
+	return fmt.Sprintf("%dms", ms)
 }
 
 func checkGolden(file string, result interface{}) {
@@ -94,7 +131,6 @@ func checkGolden(file string, result interface{}) {
 	if actual != expected {
 		fmt.Println("    ❌ Mismatch with golden output")
 		printDiff(golden, resultStr)
-		return
 	}
 }
 
@@ -111,14 +147,12 @@ func printDiff(expected, actual string) {
 	ac := strings.Split(actual, "\n")
 	fmt.Println("    Diff:")
 	for i := 0; i < len(ex) || i < len(ac); i++ {
-		if i < len(ex) && i < len(ac) {
-			if ex[i] != ac[i] {
-				fmt.Printf("    %s- %s%s\n", red, ex[i], reset)
-				fmt.Printf("    %s+ %s%s\n", green, ac[i], reset)
-			}
+		if i < len(ex) && i < len(ac) && ex[i] != ac[i] {
+			fmt.Printf("    %s- %s%s\n", red, ex[i], reset)
+			fmt.Printf("    %s+ %s%s\n", green, ac[i], reset)
 		} else if i < len(ex) {
 			fmt.Printf("    %s- %s%s\n", red, ex[i], reset)
-		} else {
+		} else if i < len(ac) {
 			fmt.Printf("    %s+ %s%s\n", green, ac[i], reset)
 		}
 	}

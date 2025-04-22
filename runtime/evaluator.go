@@ -82,7 +82,37 @@ func Evaluate(expr parser.Expression, ctx Context, funcs Functions) (interface{}
 			obj[k] = val
 		}
 		return obj, nil
+	case *parser.AssignmentStmt:
+		val, err := Evaluate(node.Value, ctx, funcs)
+		if err != nil {
+			return nil, err
+		}
+		err = AssignToContext(ctx, node.Target, val)
+		if err != nil {
+			return nil, err
+		}
+		return val, nil
 	default:
 		return nil, fmt.Errorf("unknown expression type %T", node)
 	}
+}
+
+func AssignToContext(ctx Context, target parser.Expression, value interface{}) error {
+	varExpr, ok := target.(*parser.VariableExpr)
+	if !ok {
+		return fmt.Errorf("assignment target must be variable")
+	}
+
+	cur := ctx
+	for i := 0; i < len(varExpr.Parts)-1; i++ {
+		key := varExpr.Parts[i]
+		child, ok := cur[key].(map[string]interface{})
+		if !ok {
+			child = make(map[string]interface{})
+			cur[key] = child
+		}
+		cur = child
+	}
+	cur[varExpr.Parts[len(varExpr.Parts)-1]] = value
+	return nil
 }

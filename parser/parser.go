@@ -108,7 +108,7 @@ func (p *Parser) parseStatement() (Expression, error) {
 	case lexer.LET:
 		return p.parseLetStatement()
 	default:
-		return p.ParseExpression()
+		return p.tryAssignmentOrExpression()
 	}
 }
 

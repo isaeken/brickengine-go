@@ -28,10 +28,21 @@ func RunScript(code string, ctx Context, funcs Functions) (string, error) {
 		}
 		if IsReturn(val) {
 			ret := ExtractReturn(val)
-			return fmt.Sprintf("%v", ret), nil
+			return formatOutput(ret), nil
 		}
 		last = val
 	}
 
-	return fmt.Sprintf("%v", last), nil
+	return formatOutput(last), nil
+}
+
+func formatOutput(output interface{}) string {
+	switch v := output.(type) {
+	case float64:
+		return fmt.Sprintf("%.0f", v)
+	case string:
+		return v
+	default:
+		return fmt.Sprintf("%v", output)
+	}
 }

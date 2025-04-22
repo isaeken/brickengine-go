@@ -116,7 +116,7 @@ func (p *Parser) parseArguments() ([]Expression, error) {
 	}
 
 	for {
-		arg, err := p.parsePrimary()
+		arg, err := p.ParseExpression()
 		if err != nil {
 			return nil, fmt.Errorf("invalid function argument: %w", err)
 		}

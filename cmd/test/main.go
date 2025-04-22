@@ -42,15 +42,25 @@ func main() {
 			duration := time.Since(start)
 
 			rn.ReadMemStats(&memEnd)
-
 			memUsage := memEnd.Alloc - memStart.Alloc
 
-			status := getStatus(err, duration, memUsage)
-			fmt.Println(status)
+			isFailTest := strings.Contains(file, "/fails/")
 
-			if err == nil {
-				passed++
-				checkGolden(file, result)
+			if isFailTest {
+				if err != nil {
+					fmt.Printf("%s✅ Expected Fail%s [%s, %.2f KB]\n", green, reset, formatDuration(duration), float64(memUsage)/1024)
+					passed++
+				} else {
+					fmt.Printf("%s❌ Unexpected Pass%s [%s, %.2f KB]\n", red, reset, formatDuration(duration), float64(memUsage)/1024)
+				}
+			} else {
+				if err != nil {
+					fmt.Printf("%s❌ Failed: %v%s [%s, %.2f KB]\n", red, err, reset, formatDuration(duration), float64(memUsage)/1024)
+				} else {
+					fmt.Printf("%s✅ Passed%s [%s, %.2f KB]\n", green, reset, formatDuration(duration), float64(memUsage)/1024)
+					passed++
+					checkGolden(file, result)
+				}
 			}
 		}
 	}
@@ -74,13 +84,12 @@ func main() {
 			duration := time.Since(start)
 
 			rn.ReadMemStats(&memEnd)
-
 			memUsage := memEnd.Alloc - memStart.Alloc
 
-			status := getStatus(err, duration, memUsage)
-			fmt.Println(status)
-
-			if err == nil {
+			if err != nil {
+				fmt.Printf("%s❌ Failed: %v%s [%s, %.2f KB]\n", red, err, reset, formatDuration(duration), float64(memUsage)/1024)
+			} else {
+				fmt.Printf("%s✅ Passed%s [%s, %.2f KB]\n", green, reset, formatDuration(duration), float64(memUsage)/1024)
 				passed++
 				checkGolden(file, result)
 			}
@@ -91,17 +100,6 @@ func main() {
 	if passed != total {
 		os.Exit(1)
 	}
-}
-
-func getStatus(err error, duration time.Duration, memBytes uint64) string {
-	memKB := float64(memBytes) / 1024.0
-	timeStr := formatDuration(duration)
-	memStr := fmt.Sprintf("%.2f KB", memKB)
-
-	if err != nil {
-		return fmt.Sprintf("%s❌ Failed: %v%s [%s, %s]", red, err, reset, timeStr, memStr)
-	}
-	return fmt.Sprintf("%s✅ Passed%s [%s, %s]", green, reset, timeStr, memStr)
 }
 
 func formatDuration(d time.Duration) string {

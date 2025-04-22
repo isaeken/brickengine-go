@@ -313,12 +313,12 @@ func Evaluate(expr parser.Expression, ctx Context, funcs Functions) (interface{}
 		}
 		return nil, nil
 	case *parser.IndexAssignmentStatement:
-		targetVal, err := Evaluate(node.Target, ctx, funcs)
+		target, err := Evaluate(node.Target, ctx, funcs)
 		if err != nil {
 			return nil, err
 		}
 
-		indexVal, err := Evaluate(node.Index, ctx, funcs)
+		index, err := Evaluate(node.Index, ctx, funcs)
 		if err != nil {
 			return nil, err
 		}
@@ -328,22 +328,28 @@ func Evaluate(expr parser.Expression, ctx Context, funcs Functions) (interface{}
 			return nil, err
 		}
 
-		slice, ok := targetVal.([]interface{})
+		slice, ok := target.([]interface{})
 		if !ok {
-			return nil, fmt.Errorf("target is not an array")
+			return nil, fmt.Errorf("assignment target must be an array")
 		}
 
-		idxFloat, ok := indexVal.(float64)
-		if !ok {
-			return nil, fmt.Errorf("target is not numeric")
-		}
-		idx := int(idxFloat)
-
-		if idx < 0 || idx >= len(slice) {
-			return nil, fmt.Errorf("index out of range")
+		i := int(reflect.ValueOf(index).Float())
+		if i < 0 {
+			return nil, fmt.Errorf("negative index not allowed")
 		}
 
-		slice[idx] = value
+		for len(slice) <= i {
+			slice = append(slice, nil)
+		}
+		slice[i] = value
+
+		if varExpr, ok := node.Target.(*parser.VariableExpr); ok {
+			err = AssignToContext(ctx, varExpr, slice)
+			if err != nil {
+				return nil, err
+			}
+		}
+
 		return value, nil
 	default:
 		return nil, fmt.Errorf("unknown expression type %T", node)

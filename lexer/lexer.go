@@ -139,6 +139,10 @@ func (l *Lexer) NextToken() Token {
 				return Token{Type: LET, Literal: ident}
 			case "fn":
 				return Token{Type: FUNC, Literal: ident}
+			case "for":
+				return Token{Type: FOR, Literal: ident}
+			case "in":
+				return Token{Type: IN, Literal: ident}
 			default:
 				return Token{Type: IDENT, Literal: ident}
 			}

@@ -1,0 +1,8 @@
+let items = [10, 20, 30]
+let result = ""
+
+for item in items {
+    result = result + ", " + item
+}
+
+return result

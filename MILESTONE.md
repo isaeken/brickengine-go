@@ -25,7 +25,7 @@ Minimal viable DSL implementation, suitable for internal use in AxisDeploy.
 Completes the functional DSL foundation.
 
 ### Target Features:
-- [ ] `for item in array {}` loops
+- [x] `for item in array {}` loops
 - [ ] `while (condition) {}` loops
 - [x] Array literals: `[1, 2, 3]`
 - [x] Boolean and null constants: `true`, `false`, `null`

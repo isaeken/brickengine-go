@@ -191,6 +191,63 @@ func Evaluate(expr parser.Expression, ctx Context, funcs Functions) (interface{}
 	case *parser.FnStatement:
 		ctx[node.Name] = node
 		return nil, nil
+	case *parser.ForStatement:
+		if node.Iterable != nil {
+			iterVal, err := Evaluate(node.Iterable, ctx, funcs)
+			if err != nil {
+				return nil, err
+			}
+
+			slice, ok := iterVal.([]interface{})
+			if !ok {
+				return nil, fmt.Errorf("foreach loop target must be an array")
+			}
+
+			for _, item := range slice {
+				ctx[node.VarName] = item
+
+				for _, stmt := range node.Body {
+					val, err := Evaluate(stmt, ctx, funcs)
+					if err != nil {
+						return nil, err
+					}
+					if IsReturn(val) {
+						return val, nil
+					}
+				}
+			}
+			return nil, nil
+		}
+
+		_, err := Evaluate(node.Init, ctx, funcs)
+		if err != nil {
+			return nil, err
+		}
+		for {
+			condVal, err := Evaluate(node.Condition, ctx, funcs)
+			if err != nil {
+				return nil, err
+			}
+			if !ToBool(condVal) {
+				break
+			}
+
+			for _, stmt := range node.Body {
+				val, err := Evaluate(stmt, ctx, funcs)
+				if err != nil {
+					return nil, err
+				}
+				if IsReturn(val) {
+					return val, nil
+				}
+			}
+
+			_, err = Evaluate(node.Update, ctx, funcs)
+			if err != nil {
+				return nil, err
+			}
+		}
+		return nil, nil
 	default:
 		return nil, fmt.Errorf("unknown expression type %T", node)
 	}

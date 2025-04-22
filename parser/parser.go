@@ -154,6 +154,11 @@ func (p *Parser) parseStatement() (Expression, error) {
 			return p.parseFnStatement()
 		}
 		fallthrough
+	case lexer.FOR:
+		if p.currentToken.Literal == "for" {
+			return p.parseForStatement()
+		}
+		fallthrough
 	default:
 		return p.tryAssignmentOrExpression()
 	}

@@ -28,6 +28,8 @@ const (
 	LET    = "LET"
 	ASSIGN = "="
 	FUNC   = "FUNC"
+	FOR    = "FOR"
+	IN     = "IN"
 
 	EQL = "=="
 	NEQ = "!="

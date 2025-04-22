@@ -192,7 +192,7 @@ func (p *Parser) parseIndexExpr(target Expression) (Expression, error) {
 		return nil, fmt.Errorf("index cannot be empty")
 	}
 
-	indexExr, err := p.ParseExpression()
+	indexExr, err := p.parsePrimary()
 	if err != nil {
 		return nil, err
 	}

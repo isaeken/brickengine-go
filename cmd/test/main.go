@@ -18,7 +18,7 @@ const (
 )
 
 func main() {
-	scriptDirs := []string{"examples/basic", "examples/network", "examples/benchmarks"}
+	scriptDirs := []string{"examples/basic", "examples/network", "examples/benchmarks", "examples/fails"}
 	templateDirs := []string{"examples/templates"}
 	total := 0
 	passed := 0

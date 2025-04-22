@@ -1,0 +1,13 @@
+let big = []
+let i = 0
+
+while i < 1000000 {
+  big[i] = {
+    x: i,
+    y: i + 1,
+    z: i + 2
+  }
+  i = i + 1
+}
+
+return big[999999]

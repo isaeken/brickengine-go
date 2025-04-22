@@ -4,7 +4,11 @@ import (
 	"fmt"
 	"github.com/isaeken/brickengine-go/parser"
 	"reflect"
+	"runtime"
 )
+
+var LoopLimit = 100_000_000
+var MaxMemoryBytes = 10 * 1024 * 1024
 
 type Context map[string]interface{}
 
@@ -215,6 +219,8 @@ func Evaluate(expr parser.Expression, ctx Context, funcs Functions) (interface{}
 
 		return nil, nil
 	case *parser.ForStatement:
+		count := 0
+
 		if node.Iterable != nil {
 			iterVal, err := Evaluate(node.Iterable, ctx, funcs)
 			if err != nil {
@@ -247,6 +253,14 @@ func Evaluate(expr parser.Expression, ctx Context, funcs Functions) (interface{}
 			return nil, err
 		}
 		for {
+			count++
+			if count > LoopLimit {
+				return nil, fmt.Errorf("execution limit exceeded (possible infinite loop)")
+			}
+			if err := checkMemoryLimit(); err != nil {
+				return nil, err
+			}
+
 			condVal, err := Evaluate(node.Condition, ctx, funcs)
 			if err != nil {
 				return nil, err
@@ -272,7 +286,19 @@ func Evaluate(expr parser.Expression, ctx Context, funcs Functions) (interface{}
 		}
 		return nil, nil
 	case *parser.WhileStatement:
+		count := 0
+
 		for {
+			count++
+			if count > LoopLimit {
+				return nil, fmt.Errorf("execution limit exceeded (possible infinite loop)")
+			}
+			if count%1000 == 0 {
+				if err := checkMemoryLimit(); err != nil {
+					return nil, err
+				}
+			}
+
 			condVal, err := Evaluate(node.Condition, ctx, funcs)
 			if err != nil {
 				return nil, err
@@ -373,5 +399,16 @@ func AssignToContext(ctx Context, target parser.Expression, value interface{}) e
 		cur = child
 	}
 	cur[varExpr.Parts[len(varExpr.Parts)-1]] = value
+	return nil
+}
+
+func checkMemoryLimit() error {
+	var memStats runtime.MemStats
+	runtime.ReadMemStats(&memStats)
+
+	if memStats.Alloc > uint64(MaxMemoryBytes) {
+		return fmt.Errorf("memory limit exceeded (%.2f MB used)", float64(memStats.Alloc))
+	}
+
 	return nil
 }

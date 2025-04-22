@@ -312,6 +312,39 @@ func Evaluate(expr parser.Expression, ctx Context, funcs Functions) (interface{}
 			}
 		}
 		return nil, nil
+	case *parser.IndexAssignmentStatement:
+		targetVal, err := Evaluate(node.Target, ctx, funcs)
+		if err != nil {
+			return nil, err
+		}
+
+		indexVal, err := Evaluate(node.Index, ctx, funcs)
+		if err != nil {
+			return nil, err
+		}
+
+		value, err := Evaluate(node.Value, ctx, funcs)
+		if err != nil {
+			return nil, err
+		}
+
+		slice, ok := targetVal.([]interface{})
+		if !ok {
+			return nil, fmt.Errorf("target is not an array")
+		}
+
+		idxFloat, ok := indexVal.(float64)
+		if !ok {
+			return nil, fmt.Errorf("target is not numeric")
+		}
+		idx := int(idxFloat)
+
+		if idx < 0 || idx >= len(slice) {
+			return nil, fmt.Errorf("index out of range")
+		}
+
+		slice[idx] = value
+		return value, nil
 	default:
 		return nil, fmt.Errorf("unknown expression type %T", node)
 	}

@@ -39,15 +39,34 @@ func (p *Parser) parseAssignmentStmt() (Expression, error) {
 func (p *Parser) tryAssignmentOrExpression() (Expression, error) {
 	savedToken := p.currentToken
 
-	target, err := p.parseVariableExpr()
-	if err == nil && p.currentToken.Type == lexer.ASSIGN {
+	left, err := p.parsePrimary()
+	if err != nil {
+		return nil, err
+	}
+
+	// a[0] = ..
+	if idxExpr, ok := left.(*IndexExpr); ok && p.currentToken.Type == lexer.ASSIGN {
+		p.nextToken()
+		value, err := p.ParseExpression()
+		if err != nil {
+			return nil, err
+		}
+		return &IndexAssignmentStatement{
+			Target: idxExpr.Target,
+			Index:  idxExpr.Index,
+			Value:  value,
+		}, nil
+	}
+
+	// a = ..
+	if varExpr, ok := left.(*VariableExpr); ok && p.currentToken.Type == lexer.ASSIGN {
 		p.nextToken()
 		value, err := p.ParseExpression()
 		if err != nil {
 			return nil, err
 		}
 		return &AssignmentStmt{
-			Target: target,
+			Target: varExpr,
 			Value:  value,
 		}, nil
 	}

@@ -17,3 +17,20 @@ type NumberLiteral struct {
 func (n *NumberLiteral) String() string {
 	return fmt.Sprintf("%v", n.Value)
 }
+
+type BoolLiteral struct {
+	Value bool
+}
+
+func (b *BoolLiteral) String() string {
+	if b.Value {
+		return "true"
+	}
+	return "false"
+}
+
+type NullLiteral struct{}
+
+func (n *NullLiteral) String() string {
+	return "null"
+}

@@ -1,0 +1,9 @@
+let a = true
+let b = false
+let c = null
+
+return {
+    a: a,
+    b: b,
+    c: c,
+}

@@ -28,7 +28,7 @@ Completes the functional DSL foundation.
 - [ ] `for item in array {}` loops
 - [ ] `while (condition) {}` loops
 - [ ] Array literals: `[1, 2, 3]`
-- [ ] Boolean and null constants: `true`, `false`, `null`
+- [x] Boolean and null constants: `true`, `false`, `null`
 - [ ] `try { ... } catch { ... }` exception blocks
 - [ ] `import "file.bee"` support
 - [ ] `step "name" {}` block structure (useful for AxisDeploy)

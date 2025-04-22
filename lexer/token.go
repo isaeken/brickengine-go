@@ -35,4 +35,8 @@ const (
 	GT  = ">"
 	LTE = "<="
 	GTE = ">="
+
+	TRUE  = "TRUE"
+	FALSE = "FALSE"
+	NULL  = "NULL"
 )

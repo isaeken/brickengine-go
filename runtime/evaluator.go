@@ -18,6 +18,10 @@ func Evaluate(expr parser.Expression, ctx Context, funcs Functions) (interface{}
 		return node.Value, nil
 	case *parser.NumberLiteral:
 		return node.Value, nil
+	case *parser.BoolLiteral:
+		return node.Value, nil
+	case *parser.NullLiteral:
+		return nil, nil
 	case *parser.VariableExpr:
 		return ResolveVariable(ctx, node.Parts)
 	case *parser.BinaryExpr:

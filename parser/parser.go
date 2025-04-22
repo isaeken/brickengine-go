@@ -52,6 +52,15 @@ func (p *Parser) parsePrimary() (Expression, error) {
 		}
 		p.nextToken()
 		return &NumberLiteral{Value: num}, nil
+	case lexer.TRUE:
+		p.nextToken()
+		return &BoolLiteral{Value: true}, nil
+	case lexer.FALSE:
+		p.nextToken()
+		return &BoolLiteral{Value: false}, nil
+	case lexer.NULL:
+		p.nextToken()
+		return &NullLiteral{}, nil
 	case lexer.LPAREN:
 		p.nextToken()
 		expr, err := p.ParseExpression()

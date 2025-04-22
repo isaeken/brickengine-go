@@ -129,6 +129,12 @@ func (l *Lexer) NextToken() Token {
 			switch strings.ToLower(ident) {
 			case "return":
 				return Token{Type: RETURN, Literal: ident}
+			case "true":
+				return Token{Type: TRUE, Literal: ident}
+			case "false":
+				return Token{Type: FALSE, Literal: ident}
+			case "null":
+				return Token{Type: NULL, Literal: ident}
 			case "let":
 				return Token{Type: LET, Literal: ident}
 			case "fn":

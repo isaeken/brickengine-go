@@ -189,7 +189,30 @@ func Evaluate(expr parser.Expression, ctx Context, funcs Functions) (interface{}
 		ctx[node.Name] = val
 		return val, nil
 	case *parser.FnStatement:
-		ctx[node.Name] = node
+		funcs[node.Name] = func(args ...interface{}) interface{} {
+			localCtx := make(Context)
+			for k, v := range ctx {
+				localCtx[k] = v
+			}
+			for i, param := range node.Args {
+				if i < len(args) {
+					localCtx[param] = args[i]
+				}
+			}
+
+			for _, stmt := range node.Body {
+				val, err := Evaluate(stmt, localCtx, funcs)
+				if err != nil {
+					panic(err)
+				}
+				if IsReturn(val) {
+					return ExtractReturn(val)
+				}
+			}
+
+			return nil
+		}
+
 		return nil, nil
 	case *parser.ForStatement:
 		if node.Iterable != nil {

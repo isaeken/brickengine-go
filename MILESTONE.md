@@ -26,7 +26,7 @@ Completes the functional DSL foundation.
 
 ### Target Features:
 - [x] `for item in array {}` loops
-- [ ] `while (condition) {}` loops
+- [x] `while (condition) {}` loops
 - [x] Array literals: `[1, 2, 3]`
 - [x] Boolean and null constants: `true`, `false`, `null`
 - [ ] `try { ... } catch { ... }` exception blocks

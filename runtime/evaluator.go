@@ -248,6 +248,27 @@ func Evaluate(expr parser.Expression, ctx Context, funcs Functions) (interface{}
 			}
 		}
 		return nil, nil
+	case *parser.WhileStatement:
+		for {
+			condVal, err := Evaluate(node.Condition, ctx, funcs)
+			if err != nil {
+				return nil, err
+			}
+			if !ToBool(condVal) {
+				break
+			}
+
+			for _, stmt := range node.Body {
+				val, err := Evaluate(stmt, ctx, funcs)
+				if err != nil {
+					return nil, err
+				}
+				if IsReturn(val) {
+					return val, nil
+				}
+			}
+		}
+		return nil, nil
 	default:
 		return nil, fmt.Errorf("unknown expression type %T", node)
 	}

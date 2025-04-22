@@ -159,6 +159,11 @@ func (p *Parser) parseStatement() (Expression, error) {
 			return p.parseForStatement()
 		}
 		fallthrough
+	case lexer.WHILE:
+		if p.currentToken.Literal == "while" {
+			return p.parseWhileStatement()
+		}
+		fallthrough
 	default:
 		return p.tryAssignmentOrExpression()
 	}

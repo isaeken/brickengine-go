@@ -30,6 +30,7 @@ const (
 	FUNC   = "FUNC"
 	FOR    = "FOR"
 	IN     = "IN"
+	WHILE  = "WHILE"
 
 	EQL = "=="
 	NEQ = "!="

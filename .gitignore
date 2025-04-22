@@ -1,0 +1,42 @@
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Build output
+bin/
+build/
+dist/
+
+# Go build cache
+*.log
+*.prof
+*.test
+*.coverprofile
+*.sum
+
+# Vendor directory (if used)
+vendor/
+
+# IDE/editor settings
+.vscode/
+.idea/
+*.swp
+*.swo
+*.swn
+*.bak
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Git metadata
+*.orig
+
+# Environment
+.env
+.env.*

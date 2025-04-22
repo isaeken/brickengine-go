@@ -1,5 +1,5 @@
 fn greet(name) {
-    return "Hello, "
+    return "Hello, " + name
 }
 
 return greet("Isa")

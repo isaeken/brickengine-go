@@ -45,6 +45,17 @@ func EvalBinary(left interface{}, right interface{}, op string) (interface{}, er
 		}
 	}
 
+	if op == "+" {
+		if ls, ok := left.(string); ok {
+			rs := fmt.Sprint(right)
+			return ls + rs, nil
+		}
+		if rs, ok := right.(string); ok {
+			ls := fmt.Sprint(left)
+			return ls + rs, nil
+		}
+	}
+
 	if !lok || !rok {
 		return nil, fmt.Errorf("binary operations only supported on numeric types")
 	}

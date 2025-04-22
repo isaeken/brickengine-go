@@ -74,7 +74,9 @@ func (l *Lexer) NextToken() Token {
 		l.readChar()
 		return Token{Type: COMMA, Literal: ","}
 	case '"':
-		return l.readString()
+		return l.readString('"')
+	case '\'':
+		return l.readString('\'')
 	default:
 		if isLetter(l.ch) {
 			ident := l.readIdentifier()
@@ -108,10 +110,10 @@ func (l *Lexer) readNumber() string {
 	return l.input[start:l.position]
 }
 
-func (l *Lexer) readString() Token {
+func (l *Lexer) readString(quote byte) Token {
 	l.readChar()
 	start := l.position
-	for l.ch != '"' && l.ch != 0 {
+	for l.ch != quote && l.ch != 0 {
 		l.readChar()
 	}
 	str := l.input[start:l.position]

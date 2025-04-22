@@ -27,6 +27,7 @@ const (
 	RETURN = "RETURN"
 	LET    = "LET"
 	ASSIGN = "="
+	FUNC   = "FUNC"
 
 	EQL = "=="
 	NEQ = "!="

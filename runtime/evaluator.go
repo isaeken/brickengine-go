@@ -10,6 +10,8 @@ type Context map[string]interface{}
 
 type Functions map[string]interface{}
 
+type FunctionMap map[string]*parser.FnStatement
+
 func Evaluate(expr parser.Expression, ctx Context, funcs Functions) (interface{}, error) {
 	switch node := expr.(type) {
 	case *parser.StringLiteral:
@@ -31,21 +33,43 @@ func Evaluate(expr parser.Expression, ctx Context, funcs Functions) (interface{}
 
 		return EvalBinary(left, right, node.Operator)
 	case *parser.CallExpr:
-		name := node.Name
-		fn, ok := funcs[name]
-		if !ok {
-			return nil, fmt.Errorf("undefined function '%s'", node.Name)
-		}
-		args := []reflect.Value{}
-		for _, arg := range node.Args {
-			val, err := Evaluate(arg, ctx, funcs)
-			if err != nil {
-				return nil, err
+		// native fn
+		if fn, ok := funcs[node.Name]; ok {
+			args := []reflect.Value{}
+			for _, arg := range node.Args {
+				val, err := Evaluate(arg, ctx, funcs)
+				if err != nil {
+					return nil, err
+				}
+				args = append(args, reflect.ValueOf(val))
 			}
-			args = append(args, reflect.ValueOf(val))
+			results := reflect.ValueOf(fn).Call(args)
+			return results[0].Interface(), nil
 		}
-		results := reflect.ValueOf(fn).Call(args)
-		return results[0].Interface(), nil
+
+		// user-defined fn
+		if def, ok := ctx[node.Name].(*parser.FnStatement); ok {
+			newCtx := make(Context)
+			for i, name := range def.Args {
+				argVal, err := Evaluate(node.Args[i], ctx, funcs)
+				if err != nil {
+					return nil, err
+				}
+				newCtx[name] = argVal
+			}
+			for _, stmt := range def.Body {
+				val, err := Evaluate(stmt, newCtx, funcs)
+				if err != nil {
+					return nil, err
+				}
+				if IsReturn(val) {
+					return ExtractReturn(val), nil
+				}
+			}
+			return nil, nil
+		}
+
+		return nil, fmt.Errorf("undefined function '%s'", node.Name)
 	case *parser.PipeExpr:
 		leftVal, err := Evaluate(node.Left, ctx, funcs)
 		if err != nil {
@@ -150,6 +174,9 @@ func Evaluate(expr parser.Expression, ctx Context, funcs Functions) (interface{}
 		}
 		ctx[node.Name] = val
 		return val, nil
+	case *parser.FnStatement:
+		ctx[node.Name] = node
+		return nil, nil
 	default:
 		return nil, fmt.Errorf("unknown expression type %T", node)
 	}

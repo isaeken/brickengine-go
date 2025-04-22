@@ -112,6 +112,11 @@ func (p *Parser) parseStatement() (Expression, error) {
 			return p.parseIfStatement()
 		}
 		fallthrough
+	case lexer.FUNC:
+		if p.currentToken.Literal == "fn" {
+			return p.parseFnStatement()
+		}
+		fallthrough
 	default:
 		return p.tryAssignmentOrExpression()
 	}

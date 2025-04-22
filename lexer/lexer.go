@@ -131,6 +131,8 @@ func (l *Lexer) NextToken() Token {
 				return Token{Type: RETURN, Literal: ident}
 			case "let":
 				return Token{Type: LET, Literal: ident}
+			case "fn":
+				return Token{Type: FUNC, Literal: ident}
 			default:
 				return Token{Type: IDENT, Literal: ident}
 			}

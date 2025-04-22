@@ -31,6 +31,8 @@ const (
 	FOR    = "FOR"
 	IN     = "IN"
 	WHILE  = "WHILE"
+	TRY    = "TRY"
+	CATCH  = "CATCH"
 
 	EQL = "=="
 	NEQ = "!="

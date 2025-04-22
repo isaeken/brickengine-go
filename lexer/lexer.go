@@ -145,6 +145,10 @@ func (l *Lexer) NextToken() Token {
 				return Token{Type: IN, Literal: ident}
 			case "while":
 				return Token{Type: WHILE, Literal: ident}
+			case "try":
+				return Token{Type: TRY, Literal: ident}
+			case "catch":
+				return Token{Type: CATCH, Literal: ident}
 			default:
 				return Token{Type: IDENT, Literal: ident}
 			}

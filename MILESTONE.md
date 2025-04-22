@@ -29,7 +29,7 @@ Completes the functional DSL foundation.
 - [x] `while (condition) {}` loops
 - [x] Array literals: `[1, 2, 3]`
 - [x] Boolean and null constants: `true`, `false`, `null`
-- [ ] `try { ... } catch { ... }` exception blocks
+- [x] `try { ... } catch { ... }` exception blocks
 - [ ] `import "file.bee"` support
 - [ ] `step "name" {}` block structure (useful for AxisDeploy)
 

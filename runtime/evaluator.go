@@ -269,6 +269,26 @@ func Evaluate(expr parser.Expression, ctx Context, funcs Functions) (interface{}
 			}
 		}
 		return nil, nil
+	case *parser.TryCatchStatement:
+		for _, stmt := range node.TryBlock {
+			val, err := Evaluate(stmt, ctx, funcs)
+			if err != nil {
+				for _, catchStmt := range node.CatchBlock {
+					catchVal, cerr := Evaluate(catchStmt, ctx, funcs)
+					if cerr != nil {
+						return nil, cerr
+					}
+					if IsReturn(catchVal) {
+						return catchVal, nil
+					}
+				}
+				return nil, err
+			}
+			if IsReturn(val) {
+				return val, nil
+			}
+		}
+		return nil, nil
 	default:
 		return nil, fmt.Errorf("unknown expression type %T", node)
 	}

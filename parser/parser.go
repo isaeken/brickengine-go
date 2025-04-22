@@ -164,6 +164,11 @@ func (p *Parser) parseStatement() (Expression, error) {
 			return p.parseWhileStatement()
 		}
 		fallthrough
+	case lexer.TRY:
+		if p.currentToken.Literal == "try" {
+			return p.parseTryCatchStatement()
+		}
+		fallthrough
 	default:
 		return p.tryAssignmentOrExpression()
 	}

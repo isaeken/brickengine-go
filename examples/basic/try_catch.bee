@@ -1,0 +1,6 @@
+try {
+  let risky = 10 / 0
+  return risky
+} catch {
+  return "an error occurred"
+}

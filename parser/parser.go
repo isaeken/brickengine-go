@@ -74,9 +74,37 @@ func (p *Parser) parsePrimary() (Expression, error) {
 		return expr, nil
 	case lexer.LBRACE:
 		return p.parseObjectExpr()
+	case lexer.LBRACKET:
+		return p.parseArrayLiteral()
 	default:
 		return nil, fmt.Errorf("unexpected token %s", p.currentToken.Literal)
 	}
+}
+
+func (p *Parser) parseArrayLiteral() (Expression, error) {
+	var elements []Expression
+	p.nextToken()
+
+	for p.currentToken.Type != lexer.RBRACKET && p.currentToken.Type != lexer.EOF {
+		elem, err := p.ParseExpression()
+		if err != nil {
+			return nil, err
+		}
+		elements = append(elements, elem)
+
+		if p.currentToken.Type == lexer.COMMA {
+			p.nextToken()
+		} else if p.currentToken.Type != lexer.RBRACKET {
+			return nil, fmt.Errorf("expected ',' or ']' in array, got '%s'", p.currentToken.Literal)
+		}
+	}
+
+	if p.currentToken.Type != lexer.RBRACKET {
+		return nil, fmt.Errorf("expected closing ']' for array, got '%s'", p.currentToken.Literal)
+	}
+	p.nextToken()
+
+	return &ArrayLiteral{Elements: elements}, nil
 }
 
 func (p *Parser) parseArguments() ([]Expression, error) {

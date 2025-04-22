@@ -22,6 +22,16 @@ func Evaluate(expr parser.Expression, ctx Context, funcs Functions) (interface{}
 		return node.Value, nil
 	case *parser.NullLiteral:
 		return nil, nil
+	case *parser.ArrayLiteral:
+		var values []interface{}
+		for _, el := range node.Elements {
+			v, err := Evaluate(el, ctx, funcs)
+			if err != nil {
+				return nil, err
+			}
+			values = append(values, v)
+		}
+		return values, nil
 	case *parser.VariableExpr:
 		return ResolveVariable(ctx, node.Parts)
 	case *parser.BinaryExpr:

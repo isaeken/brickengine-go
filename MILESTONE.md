@@ -27,7 +27,7 @@ Completes the functional DSL foundation.
 ### Target Features:
 - [ ] `for item in array {}` loops
 - [ ] `while (condition) {}` loops
-- [ ] Array literals: `[1, 2, 3]`
+- [x] Array literals: `[1, 2, 3]`
 - [x] Boolean and null constants: `true`, `false`, `null`
 - [ ] `try { ... } catch { ... }` exception blocks
 - [ ] `import "file.bee"` support

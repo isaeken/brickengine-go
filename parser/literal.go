@@ -34,3 +34,19 @@ type NullLiteral struct{}
 func (n *NullLiteral) String() string {
 	return "null"
 }
+
+type ArrayLiteral struct {
+	Elements []Expression
+}
+
+func (a *ArrayLiteral) String() string {
+	str := "["
+	for i, el := range a.Elements {
+		if i > 0 {
+			str += ", "
+		}
+		str += el.String()
+	}
+	str += "]"
+	return str
+}

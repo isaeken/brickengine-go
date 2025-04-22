@@ -112,13 +112,34 @@ func (l *Lexer) readNumber() string {
 
 func (l *Lexer) readString(quote byte) Token {
 	l.readChar()
-	start := l.position
-	for l.ch != quote && l.ch != 0 {
+	var str []rune
+
+	for l.ch != 0 && l.ch != quote {
+		if l.ch == '\\' {
+			l.readChar()
+			switch l.ch {
+			case 'n':
+				str = append(str, '\n')
+			case 'r':
+				str = append(str, '\r')
+			case 't':
+				str = append(str, '\t')
+			case '\\':
+				str = append(str, '\\')
+			case quote:
+				str = append(str, rune(quote))
+			default:
+				str = append(str, '\\', rune(l.ch))
+			}
+		} else {
+			str = append(str, rune(l.ch))
+		}
+
 		l.readChar()
 	}
-	str := l.input[start:l.position]
+
 	l.readChar()
-	return Token{Type: STRING, Literal: str}
+	return Token{Type: STRING, Literal: string(str)}
 }
 
 func (l *Lexer) skipWhitespace() {

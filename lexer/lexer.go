@@ -1,6 +1,9 @@
 package lexer
 
-import "unicode"
+import (
+	"strings"
+	"unicode"
+)
 
 type Token struct {
 	Type    TokenType
@@ -42,12 +45,18 @@ func (l *Lexer) NextToken() Token {
 			l.readChar()
 			return Token{Type: EXPR_OPEN, Literal: "{{"}
 		}
+
+		l.readChar()
+		return Token{Type: LBRACE, Literal: "{"}
 	case '}':
 		if l.peekChar() == '}' {
 			l.readChar()
 			l.readChar()
 			return Token{Type: EXPR_CLOSE, Literal: "}}"}
 		}
+
+		l.readChar()
+		return Token{Type: RBRACE, Literal: "}"}
 	case '+', '-', '*', '/':
 		ch := l.ch
 		l.readChar()
@@ -77,10 +86,27 @@ func (l *Lexer) NextToken() Token {
 		return l.readString('"')
 	case '\'':
 		return l.readString('\'')
+	case '=':
+		l.readChar()
+		return Token{Type: ASSIGN, Literal: "="}
+	case ';':
+		l.readChar()
+		return Token{Type: SEMICOLON, Literal: ";"}
+	case ':':
+		l.readChar()
+		return Token{Type: COLON, Literal: ":"}
 	default:
 		if isLetter(l.ch) {
 			ident := l.readIdentifier()
-			return Token{Type: IDENT, Literal: ident}
+
+			switch strings.ToLower(ident) {
+			case "return":
+				return Token{Type: RETURN, Literal: ident}
+			case "let":
+				return Token{Type: LET, Literal: ident}
+			default:
+				return Token{Type: IDENT, Literal: ident}
+			}
 		} else if isDigit(l.ch) {
 			number := l.readNumber()
 			return Token{Type: NUMBER, Literal: number}

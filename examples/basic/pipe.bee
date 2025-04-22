@@ -1,0 +1,6 @@
+let value = vars.input | 100
+let output_value = value + 50
+
+return {
+  computed: output_value
+}

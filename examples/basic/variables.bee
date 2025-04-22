@@ -1,0 +1,9 @@
+let name = vars.hostname | "default-host"
+let id = uuid()
+
+let output = {
+  hostname: name,
+  instance_id: id
+}
+
+return output

@@ -1,0 +1,9 @@
+let a = 5 + 10 * 2;
+let b = (5 + 10) * 2;
+
+let output = {
+  result_a: a,
+  result_b: b
+}
+
+return output

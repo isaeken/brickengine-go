@@ -72,6 +72,16 @@ func Evaluate(expr parser.Expression, ctx Context, funcs Functions) (interface{}
 			return arr.Index(i).Interface(), nil
 		}
 		return nil, fmt.Errorf("index out of range")
+	case *parser.ObjectExpr:
+		obj := make(map[string]interface{})
+		for k, v := range node.Pairs {
+			val, err := Evaluate(v, ctx, funcs)
+			if err != nil {
+				return nil, err
+			}
+			obj[k] = val
+		}
+		return obj, nil
 	default:
 		return nil, fmt.Errorf("unknown expression type %T", node)
 	}

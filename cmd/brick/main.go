@@ -6,13 +6,14 @@ import (
 )
 
 func main() {
-	code := `gb(1) + var.extra | 512`
+	code := `slug(ips[0]) | "a\t\"sd\""`
 
 	ctx := runtime.Context{
 		"var": map[string]interface{}{
 			"extra": 128,
 			"name":  "İsa",
 		},
+		"items": []string{"a", "b", "c"},
 	}
 
 	funcs := runtime.Functions{

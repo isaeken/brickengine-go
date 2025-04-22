@@ -1,0 +1,4 @@
+machine:
+  name: "vm-random-generated-string"
+  ip: "random-generated-ip4"
+  mac: "random-generated-mac-address"

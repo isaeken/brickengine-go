@@ -30,40 +30,7 @@ func (p *Parser) ParseExpression() (Expression, error) {
 		return nil, err
 	}
 
-	if p.currentToken.Type != lexer.EOF && p.currentToken.Type != lexer.EXPR_CLOSE {
-		return nil, fmt.Errorf("unexpected token '%s' at end of expression", p.currentToken.Literal)
-	}
-
 	return expr, nil
-}
-
-func (p *Parser) parseBinaryExpr(precedence int) (Expression, error) {
-	left, err := p.parsePrimary()
-	if err != nil {
-		return nil, fmt.Errorf("invalid left-hand side of binary expression: %w", err)
-	}
-
-	for isOperator(p.currentToken.Type) {
-		op := p.currentToken.Literal
-		p.nextToken()
-
-		if p.currentToken.Type == lexer.EOF {
-			return nil, fmt.Errorf("expected right-hand side after operator '%s'", op)
-		}
-
-		right, err := p.parsePrimary()
-		if err != nil {
-			return nil, fmt.Errorf("invalid right-hand side of binary expression: %w", err)
-		}
-
-		left = &BinaryExpr{
-			Left:     left,
-			Operator: op,
-			Right:    right,
-		}
-	}
-
-	return left, nil
 }
 
 func (p *Parser) parsePrimary() (Expression, error) {
@@ -96,26 +63,11 @@ func (p *Parser) parsePrimary() (Expression, error) {
 		}
 		p.nextToken()
 		return expr, nil
+	case lexer.LBRACE:
+		return p.parseObjectExpr()
 	default:
 		return nil, fmt.Errorf("unexpected token %s", p.currentToken.Literal)
 	}
-}
-
-func (p *Parser) parseCallExpr() (Expression, error) {
-	funcName := p.currentToken.Literal
-	p.nextToken()
-
-	if p.currentToken.Type != lexer.LPAREN {
-		return nil, fmt.Errorf("expected '(' after function name")
-	}
-	p.nextToken()
-
-	args, err := p.parseArguments()
-	if err != nil {
-		return nil, err
-	}
-
-	return &CallExpr{Name: funcName, Args: args}, nil
 }
 
 func (p *Parser) parseArguments() ([]Expression, error) {
@@ -149,87 +101,33 @@ func (p *Parser) parseArguments() ([]Expression, error) {
 	return args, nil
 }
 
-func (p *Parser) parseVariableExpr() (Expression, error) {
-	if p.currentToken.Type != lexer.IDENT {
-		return nil, fmt.Errorf("expected identifier at start of variable expression, got '%s'", p.currentToken.Literal)
+func (p *Parser) parseStatement() (Expression, error) {
+	switch p.currentToken.Type {
+	case lexer.RETURN:
+		return p.parseReturnStatement()
+	case lexer.LET:
+		return p.parseLetStatement()
+	default:
+		return p.ParseExpression()
 	}
-
-	parts := []string{p.currentToken.Literal}
-	p.nextToken()
-
-	// dot notation
-	for p.currentToken.Type == lexer.DOT {
-		p.nextToken()
-		if p.currentToken.Type != lexer.IDENT {
-			return nil, fmt.Errorf("expected identifier after '.'")
-		}
-		parts = append(parts, p.currentToken.Literal)
-		p.nextToken()
-	}
-
-	var expr Expression = &VariableExpr{Parts: parts}
-
-	// index access
-	for p.currentToken.Type == lexer.LBRACKET {
-		if p.peekToken.Type == lexer.RBRACKET {
-			return nil, fmt.Errorf("empty index expression is not allowed")
-		}
-
-		idxExpr, err := p.parseIndexExpr(expr)
-		if err != nil {
-			return nil, fmt.Errorf("invalid index on variable expression: %w", err)
-		}
-		expr = idxExpr
-	}
-
-	return expr, nil
 }
 
-func (p *Parser) parseIndexExpr(target Expression) (Expression, error) {
-	p.nextToken()
+func (p *Parser) Parse() ([]Expression, error) {
+	var stmts []Expression
 
-	if p.currentToken.Type == lexer.RBRACKET {
-		return nil, fmt.Errorf("index cannot be empty")
-	}
-
-	indexExr, err := p.parsePrimary()
-	if err != nil {
-		return nil, err
-	}
-
-	if p.currentToken.Type != lexer.RBRACKET {
-		return nil, fmt.Errorf("expected closing ']' after index expression")
-	}
-	p.nextToken()
-
-	return &IndexExpr{Target: target, Index: indexExr}, nil
-}
-
-func (p *Parser) parsePipeExpr() (Expression, error) {
-	left, err := p.parseBinaryExpr(0)
-	if err != nil {
-		return nil, fmt.Errorf("invalid left side of pipe expression: %w", err)
-	}
-
-	for p.currentToken.Type == lexer.PIPE {
-		p.nextToken()
-
-		if p.currentToken.Type == lexer.PIPE || p.currentToken.Type == lexer.EOF {
-			return nil, fmt.Errorf("expected expression after pipe ('|'), got '%s'", p.currentToken.Literal)
-		}
-
-		right, err := p.parseBinaryExpr(0)
+	for p.currentToken.Type != lexer.EOF {
+		stmt, err := p.parseStatement()
 		if err != nil {
-			return nil, fmt.Errorf("invalid right side of pipe expression: %w", err)
+			return nil, err
 		}
+		stmts = append(stmts, stmt)
 
-		left = &PipeExpr{
-			Left:  left,
-			Right: right,
+		if p.currentToken.Type == lexer.SEMICOLON {
+			p.nextToken()
 		}
 	}
 
-	return left, nil
+	return stmts, nil
 }
 
 func isOperator(t lexer.TokenType) bool {

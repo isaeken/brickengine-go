@@ -87,8 +87,35 @@ func (l *Lexer) NextToken() Token {
 	case '\'':
 		return l.readString('\'')
 	case '=':
+		if l.peekChar() == '=' {
+			l.readChar()
+			l.readChar()
+			return Token{Type: EQL, Literal: "=="}
+		}
 		l.readChar()
 		return Token{Type: ASSIGN, Literal: "="}
+	case '!':
+		if l.peekChar() == '=' {
+			l.readChar()
+			l.readChar()
+			return Token{Type: NEQ, Literal: "!="}
+		}
+	case '<':
+		if l.peekChar() == '=' {
+			l.readChar()
+			l.readChar()
+			return Token{Type: LTE, Literal: "<="}
+		}
+		l.readChar()
+		return Token{Type: LT, Literal: "<"}
+	case '>':
+		if l.peekChar() == '=' {
+			l.readChar()
+			l.readChar()
+			return Token{Type: GTE, Literal: ">="}
+		}
+		l.readChar()
+		return Token{Type: GT, Literal: ">"}
 	case ';':
 		l.readChar()
 		return Token{Type: SEMICOLON, Literal: ";"}
@@ -117,7 +144,7 @@ func (l *Lexer) NextToken() Token {
 		}
 	}
 
-	return Token{Type: ILLEGAL, Literal: ""}
+	return Token{Type: ILLEGAL, Literal: string(l.ch)}
 }
 
 func (l *Lexer) readIdentifier() string {

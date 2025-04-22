@@ -19,27 +19,19 @@ func RunScript(code string, ctx Context, funcs Functions) (string, error) {
 		return "", err
 	}
 
+	var last interface{} = ""
+
 	for _, stmt := range statements {
-		switch node := stmt.(type) {
-		case *parser.ReturnStatement:
-			val, err := Evaluate(node.Value, ctx, funcs)
-			if err != nil {
-				return "", err
-			}
-			return fmt.Sprint(val), nil
-		case *parser.LetStatement:
-			val, err := Evaluate(node.Value, ctx, funcs)
-			if err != nil {
-				return "", err
-			}
-			ctx[node.Name] = val
-		default:
-			_, err := Evaluate(node, ctx, funcs)
-			if err != nil {
-				return "", err
-			}
+		val, err := Evaluate(stmt, ctx, funcs)
+		if err != nil {
+			return "", err
 		}
+		if IsReturn(val) {
+			ret := ExtractReturn(val)
+			return fmt.Sprintf("%v", ret), nil
+		}
+		last = val
 	}
 
-	return "", nil
+	return fmt.Sprintf("%v", last), nil
 }

@@ -27,4 +27,11 @@ const (
 	RETURN = "RETURN"
 	LET    = "LET"
 	ASSIGN = "="
+
+	EQL = "=="
+	NEQ = "!="
+	LT  = "<"
+	GT  = ">"
+	LTE = "<="
+	GTE = ">="
 )

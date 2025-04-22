@@ -107,6 +107,11 @@ func (p *Parser) parseStatement() (Expression, error) {
 		return p.parseReturnStatement()
 	case lexer.LET:
 		return p.parseLetStatement()
+	case lexer.IDENT:
+		if p.currentToken.Literal == "if" {
+			return p.parseIfStatement()
+		}
+		fallthrough
 	default:
 		return p.tryAssignmentOrExpression()
 	}
@@ -131,5 +136,8 @@ func (p *Parser) Parse() ([]Expression, error) {
 }
 
 func isOperator(t lexer.TokenType) bool {
-	return t == lexer.OPERATOR
+	return t == lexer.OPERATOR ||
+		t == lexer.EQL || t == lexer.NEQ ||
+		t == lexer.LT || t == lexer.GT ||
+		t == lexer.LTE || t == lexer.GTE
 }

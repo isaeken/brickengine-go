@@ -1,0 +1,9 @@
+let x = 10
+
+if x > 20 {
+    return "greater"
+} else if x == 10 {
+    return "equal"
+} else {
+    return "less"
+}

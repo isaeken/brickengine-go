@@ -92,6 +92,64 @@ func Evaluate(expr parser.Expression, ctx Context, funcs Functions) (interface{}
 			return nil, err
 		}
 		return val, nil
+	case *parser.IfStatement:
+		condVal, err := Evaluate(node.Condition, ctx, funcs)
+		if err != nil {
+			return nil, err
+		}
+		if ToBool(condVal) {
+			for _, stmt := range node.ThenBlock {
+				val, err := Evaluate(stmt, ctx, funcs)
+				if err != nil {
+					return nil, err
+				}
+				if IsReturn(val) {
+					return val, nil
+				}
+			}
+			return nil, nil
+		}
+		for _, elseif := range node.ElseIfParts {
+			condVal, err := Evaluate(elseif.Condition, ctx, funcs)
+			if err != nil {
+				return nil, err
+			}
+			if ToBool(condVal) {
+				for _, stmt := range elseif.Block {
+					val, err := Evaluate(stmt, ctx, funcs)
+					if err != nil {
+						return nil, err
+					}
+					if IsReturn(val) {
+						return val, nil
+					}
+				}
+				return nil, nil
+			}
+		}
+		for _, stmt := range node.ElseBlock {
+			val, err := Evaluate(stmt, ctx, funcs)
+			if err != nil {
+				return nil, err
+			}
+			if IsReturn(val) {
+				return val, nil
+			}
+		}
+		return nil, nil
+	case *parser.ReturnStatement:
+		val, err := Evaluate(node.Value, ctx, funcs)
+		if err != nil {
+			return nil, err
+		}
+		return ReturnedValue{Value: val}, nil
+	case *parser.LetStatement:
+		val, err := Evaluate(node.Value, ctx, funcs)
+		if err != nil {
+			return "", err
+		}
+		ctx[node.Name] = val
+		return val, nil
 	default:
 		return nil, fmt.Errorf("unknown expression type %T", node)
 	}

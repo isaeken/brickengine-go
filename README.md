@@ -6,6 +6,7 @@ features:
 - arithmetic: `5 + 5`, `gb(1) - mb(512) + 128`
 - pipe fallback: `var.vlaue | "default"`
 - nested calls `slug(var.id)`
+- array access: `arr[index]`
 - variable resolution: `var.user.name`
 - built-in `{{ .. }}` template rendering
 
@@ -22,6 +23,7 @@ input := `
 disk_size: {{ gb(1) + var.extra | 512 }}
 memory: {{ mb(256) + 128 }}
 text: Hello {{ var.name | "Guest" }}
+plan: {{ plans[1] }}
 `
 
 ctx := runtime.Context{
@@ -29,6 +31,7 @@ ctx := runtime.Context{
         "extra": 128,
         "name":  "İsa",
     },
+	"plans": []string{"basic", "pro", "enterprise"},
 }
 funcs := runtime.Functions{
     "gb": func(x float64) float64 { return x * 1024 },

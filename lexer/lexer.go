@@ -59,6 +59,11 @@ func (l *Lexer) NextToken() Token {
 		l.readChar()
 		return Token{Type: RBRACE, Literal: "}"}
 	case '+', '-', '*', '/':
+		if l.ch == '-' && isDigit(l.peekChar()) {
+			number := l.readNumber()
+			return Token{Type: NUMBER, Literal: number}
+		}
+
 		ch := l.ch
 		l.readChar()
 		return Token{Type: OPERATOR, Literal: string(ch)}
@@ -176,7 +181,7 @@ func (l *Lexer) readIdentifier() string {
 
 func (l *Lexer) readNumber() string {
 	start := l.position
-	for isDigit(l.ch) || l.ch == '.' {
+	for isDigit(l.ch) || l.ch == '.' || l.ch == 'e' || l.ch == '+' || l.ch == '-' {
 		l.readChar()
 	}
 	return l.input[start:l.position]

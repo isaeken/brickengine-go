@@ -1,3 +1,0 @@
-let ip = random_ipv4_in("192.168.122.0/24")
-
-return ip

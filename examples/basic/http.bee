@@ -1,0 +1,7 @@
+let res = http.get("https://jsonplaceholder.typicode.com/todos/1")
+
+if res.status == 200 {
+    return res.body.title
+} else {
+    return "Server error"
+}

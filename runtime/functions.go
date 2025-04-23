@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/gosimple/slug"
+	"github.com/isaeken/brickengine-go/modules"
 	"math"
 	"math/rand"
 	"reflect"
@@ -188,6 +189,12 @@ func UtilFunctions() Functions {
 	}
 }
 
+func HttpFunctions() Functions {
+	return Functions{
+		"http.get": modules.HttpGet,
+	}
+}
+
 func DefaultFunctions() Functions {
 	return mergeFunctions([]Functions{
 		UUIDAndFormatFunctions(),
@@ -196,6 +203,7 @@ func DefaultFunctions() Functions {
 		TypeFunctions(),
 		ArrayFunctions(),
 		UtilFunctions(),
+		HttpFunctions(),
 	}...)
 }
 

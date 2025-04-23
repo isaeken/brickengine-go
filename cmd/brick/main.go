@@ -3,28 +3,29 @@ package main
 import (
 	"fmt"
 	"github.com/isaeken/brickengine-go/runtime"
+	"os"
 )
 
 func main() {
-	code := `slug(ips[0]) | "a\t\"sd\""`
-
-	ctx := runtime.Context{
-		"var": map[string]interface{}{
-			"extra": 128,
-			"name":  "İsa",
-		},
-		"items": []string{"a", "b", "c"},
+	if len(os.Args) < 2 {
+		fmt.Println("Usage: brick <file>")
+		os.Exit(1)
 	}
 
-	funcs := runtime.Functions{
-		"gb": func(x float64) float64 { return x * 1024 },
-		"mb": func(x float64) float64 { return x },
-	}
-
-	input := fmt.Sprintf("size: {{ %s }}", code)
-	output, err := runtime.EvalTemplate(input, ctx, funcs)
+	filePath := os.Args[1]
+	content, err := os.ReadFile(filePath)
 	if err != nil {
-		panic(err)
+		fmt.Printf("failed to read file %s: %v\n", filePath, err)
+		os.Exit(1)
+	}
+
+	ctx := runtime.Context{}
+	funcs := runtime.DefaultFunctions()
+
+	output, err := runtime.RunScript(string(content), ctx, funcs)
+	if err != nil {
+		fmt.Printf("%v\n", err)
+		os.Exit(1)
 	}
 
 	fmt.Println(output)

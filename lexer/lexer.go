@@ -35,6 +35,7 @@ func (l *Lexer) readChar() {
 
 func (l *Lexer) NextToken() Token {
 	l.skipWhitespace()
+	l.skipComment()
 
 	switch l.ch {
 	case 0:
@@ -216,6 +217,33 @@ func (l *Lexer) readString(quote byte) Token {
 func (l *Lexer) skipWhitespace() {
 	for unicode.IsSpace(rune(l.ch)) {
 		l.readChar()
+	}
+}
+
+func (l *Lexer) skipComment() {
+	for {
+		if l.ch == '#' {
+			for l.ch != '\n' && l.ch != 0 {
+				l.readChar()
+			}
+		}
+
+		if l.ch == '/' && l.peekChar() == '/' {
+			l.readChar()
+			l.readChar()
+			for l.ch != '\n' && l.ch != 0 {
+				l.readChar()
+			}
+		}
+
+		if unicode.IsSpace(rune(l.ch)) {
+			l.skipWhitespace()
+			continue
+		}
+
+		if l.ch != '#' && !(l.ch == '/' && l.peekChar() == '/') {
+			break
+		}
 	}
 }
 

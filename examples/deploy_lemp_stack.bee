@@ -1,0 +1,61 @@
+// LEMP stack deployment script
+
+step "initialize variables" {
+    let server_ip = vars.ip | "192.168.1.100"
+    let os = "ubuntu"
+    let packages = ["nginx", "mysql-server", "php", "php-mysql"]
+}
+
+step "print server info" {
+    fn greet_os(name) {
+        return "setting up for: " + name
+    }
+
+    let message = greet_os(os)
+    log(message)
+}
+
+step "install packages" {
+    for pkg in packages {
+        log("installing: " + pkg)
+        install_package(pkg)
+    }
+}
+
+step "configure php" {
+    let php_ini = {
+        memory_limit: "512M",
+        upload_max_filesize: "50M"
+    }
+
+    config_set("php.ini", php_ini);
+}
+
+step "start services" {
+    let services = ["nginx", "mysql", "php-fpm"]
+
+    for svc in services {
+        try {
+            start_service(svc)
+        } catch {
+            log("failed to start: " + svc)
+        }
+    }
+}
+
+step "create mysql db" {
+    let db_user = vars.db_user | "root"
+    let db_pass = vars.db_pass | "secret"
+    let db_name = "lemp_demo"
+
+    create_mysql_db(db_user, db_pass, db_name)
+}
+
+step "validate deployment" {
+    let response = http_get("http://" + server_ip)
+    if response.status == 200 {
+        return "lemp stack deployed successfully!"
+    } else {
+        return "deployment failed"
+    }
+}

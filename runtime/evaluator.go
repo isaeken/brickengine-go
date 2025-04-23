@@ -5,6 +5,7 @@ import (
 	"github.com/isaeken/brickengine-go/parser"
 	"reflect"
 	"runtime"
+	"strings"
 )
 
 var LoopLimit = 100_000_000
@@ -51,43 +52,44 @@ func Evaluate(expr parser.Expression, ctx Context, funcs Functions) (interface{}
 
 		return EvalBinary(left, right, node.Operator)
 	case *parser.CallExpr:
-		// native fn
-		if fn, ok := funcs[node.Name]; ok {
-			args := []reflect.Value{}
-			for _, arg := range node.Args {
-				val, err := Evaluate(arg, ctx, funcs)
-				if err != nil {
-					return nil, err
+		if varExpr, ok := node.Target.(*parser.VariableExpr); ok {
+			fnName := strings.Join(varExpr.Parts, ".")
+
+			if fn, ok := funcs[fnName]; ok {
+				args := []reflect.Value{}
+				for _, arg := range node.Args {
+					val, err := Evaluate(arg, ctx, funcs)
+					if err != nil {
+						return nil, err
+					}
+					args = append(args, reflect.ValueOf(val))
 				}
-				args = append(args, reflect.ValueOf(val))
+				results := reflect.ValueOf(fn).Call(args)
+				return results[0].Interface(), nil
 			}
-			results := reflect.ValueOf(fn).Call(args)
-			return results[0].Interface(), nil
 		}
 
-		// user-defined fn
-		if def, ok := ctx[node.Name].(*parser.FnStatement); ok {
-			newCtx := make(Context)
-			for i, name := range def.Args {
-				argVal, err := Evaluate(node.Args[i], ctx, funcs)
-				if err != nil {
-					return nil, err
-				}
-				newCtx[name] = argVal
-			}
-			for _, stmt := range def.Body {
-				val, err := Evaluate(stmt, newCtx, funcs)
-				if err != nil {
-					return nil, err
-				}
-				if IsReturn(val) {
-					return ExtractReturn(val), nil
-				}
-			}
-			return nil, nil
+		targetVal, err := Evaluate(node.Target, ctx, funcs)
+		if err != nil {
+			return nil, err
 		}
 
-		return nil, fmt.Errorf("undefined function '%s'", node.Name)
+		fn := reflect.ValueOf(targetVal)
+		if fn.Kind() != reflect.Func {
+			return nil, fmt.Errorf("expression is not callable")
+		}
+
+		args := []reflect.Value{}
+		for _, arg := range node.Args {
+			val, err := Evaluate(arg, ctx, funcs)
+			if err != nil {
+				return nil, err
+			}
+			args = append(args, reflect.ValueOf(val))
+		}
+
+		results := fn.Call(args)
+		return results[0].Interface(), nil
 	case *parser.PipeExpr:
 		leftVal, err := Evaluate(node.Left, ctx, funcs)
 		if err != nil {
@@ -117,11 +119,17 @@ func Evaluate(expr parser.Expression, ctx Context, funcs Functions) (interface{}
 	case *parser.ObjectExpr:
 		obj := make(map[string]interface{})
 		for k, v := range node.Pairs {
-			val, err := Evaluate(v, ctx, funcs)
-			if err != nil {
-				return nil, err
+			switch fn := v.(type) {
+			case *parser.FnStatement:
+				fnValue := DeclareFunction(ctx, funcs, fn.Args, fn.Body)
+				obj[k] = fnValue
+			default:
+				val, err := Evaluate(fn, ctx, funcs)
+				if err != nil {
+					return nil, err
+				}
+				obj[k] = val
 			}
-			obj[k] = val
 		}
 		return obj, nil
 	case *parser.AssignmentStmt:
@@ -193,29 +201,7 @@ func Evaluate(expr parser.Expression, ctx Context, funcs Functions) (interface{}
 		ctx[node.Name] = val
 		return val, nil
 	case *parser.FnStatement:
-		funcs[node.Name] = func(args ...interface{}) interface{} {
-			localCtx := make(Context)
-			for k, v := range ctx {
-				localCtx[k] = v
-			}
-			for i, param := range node.Args {
-				if i < len(args) {
-					localCtx[param] = args[i]
-				}
-			}
-
-			for _, stmt := range node.Body {
-				val, err := Evaluate(stmt, localCtx, funcs)
-				if err != nil {
-					panic(err)
-				}
-				if IsReturn(val) {
-					return ExtractReturn(val)
-				}
-			}
-
-			return nil
-		}
+		funcs[node.Name] = DeclareFunction(ctx, funcs, node.Args, node.Body)
 
 		return nil, nil
 	case *parser.ForStatement:
@@ -379,6 +365,32 @@ func Evaluate(expr parser.Expression, ctx Context, funcs Functions) (interface{}
 		return value, nil
 	default:
 		return nil, fmt.Errorf("unknown expression type %T", node)
+	}
+}
+
+func DeclareFunction(ctx Context, funcs Functions, Args []string, Body []parser.Expression) interface{} {
+	return func(args ...interface{}) interface{} {
+		localCtx := make(Context)
+		for k, v := range ctx {
+			localCtx[k] = v
+		}
+		for i, param := range Args {
+			if i < len(args) {
+				localCtx[param] = args[i]
+			}
+		}
+
+		for _, stmt := range Body {
+			val, err := Evaluate(stmt, localCtx, funcs)
+			if err != nil {
+				panic(err)
+			}
+			if IsReturn(val) {
+				return ExtractReturn(val)
+			}
+		}
+
+		return nil
 	}
 }
 

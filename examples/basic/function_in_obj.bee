@@ -1,0 +1,7 @@
+let obj = {
+    greet: fn(name) {
+        return "hi " + name
+    }
+}
+
+return obj.greet("Isa")

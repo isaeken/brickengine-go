@@ -36,11 +36,14 @@ func (p *Parser) ParseExpression() (Expression, error) {
 func (p *Parser) parsePrimary() (Expression, error) {
 	switch p.currentToken.Type {
 	case lexer.IDENT:
-		if p.peekToken.Type == lexer.LPAREN {
-			return p.parseCallExpr()
+		varExpr, err := p.parseVariableExpr()
+		if err != nil {
+			return nil, err
 		}
-
-		return p.parseVariableExpr()
+		if p.currentToken.Type == lexer.LPAREN {
+			return p.parseCallExpr(varExpr)
+		}
+		return varExpr, nil
 	case lexer.STRING:
 		str := &StringLiteral{Value: p.currentToken.Literal}
 		p.nextToken()

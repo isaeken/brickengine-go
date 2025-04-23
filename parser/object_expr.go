@@ -39,11 +39,45 @@ func (p *Parser) parseObjectExpr() (Expression, error) {
 		}
 		p.nextToken()
 
-		expr, err := p.ParseExpression()
-		if err != nil {
-			return nil, err
+		if p.currentToken.Type == lexer.FUNC && p.currentToken.Literal == "fn" {
+			p.nextToken()
+
+			args := []string{}
+			p.nextToken()
+			for p.currentToken.Type != lexer.RPAREN {
+				if p.currentToken.Type != lexer.IDENT {
+					return nil, fmt.Errorf("expected identifier in argument list, got '%s'", p.currentToken.Literal)
+				}
+				args = append(args, p.currentToken.Literal)
+				p.nextToken()
+				if p.currentToken.Type == lexer.COMMA {
+					p.nextToken()
+				}
+			}
+			p.nextToken()
+
+			if p.currentToken.Type != lexer.LBRACE {
+				return nil, fmt.Errorf("expected '{' to start function body, got '%s'", p.currentToken.Literal)
+			}
+			p.nextToken()
+
+			body, err := p.parseBlock()
+			if err != nil {
+				return nil, err
+			}
+
+			pairs[key] = &FnStatement{
+				Name: "",
+				Args: args,
+				Body: body,
+			}
+		} else {
+			expr, err := p.ParseExpression()
+			if err != nil {
+				return nil, err
+			}
+			pairs[key] = expr
 		}
-		pairs[key] = expr
 
 		if p.currentToken.Type == lexer.COMMA {
 			p.nextToken()

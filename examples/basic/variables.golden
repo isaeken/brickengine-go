@@ -1,1 +1,1 @@
-map[hostname:testing instance_id:random-generated-uuid]
+map[hostname:testing instance_id:UUID]

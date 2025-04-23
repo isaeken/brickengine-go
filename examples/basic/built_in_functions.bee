@@ -1,0 +1,54 @@
+let result = {}
+
+# UUID / FORMAT
+result.uuid = uuid()
+result.slug = slug("My Title Here")
+result.json = to_json({ a: 1, b: [2, 3] })
+parsed = parse_json('{"a":123}')
+result.parsed = parsed.a
+result.formatted = format([1, 2, 3])
+result.now = now()
+
+# STRING
+result.strlen = strlen("hello")
+result.upper = str_upper("isa")
+result.lower = str_lower("ISA")
+result.trim = str_trim("  trim  ")
+result.contains = str_contains("isa", "a")
+result.starts = str_starts_with("isa", "i")
+result.ends = str_ends_with("isa", "a")
+result.replaced = str_replace("a-b-c", "-", "_")
+result.substr = substr("isaeken", 0, 3)
+result.split = split("a,b,c", ",")
+result.joined = join(["a", "b"], "-")
+result.repeated = repeat("x", 3)
+result.reversed = str_reverse("abc")
+
+# MATH
+result.abs = abs(-42)
+result.round = round(2.7)
+result.floor = floor(2.9)
+result.ceil = ceil(2.1)
+result.min = min(5, 10)
+result.max = max(5, 10)
+result.sqrt = sqrt(9)
+result.pow = pow(2, 3)
+
+# TYPE
+result.type = type_of([1, 2, 3])
+
+# ARRAY
+let arr = [1, 2, 3]
+result.count = count(arr)
+result.push = push(arr, 4)
+result.pop = pop([1,2,3])
+result.shift = shift([1,2,3])
+result.unshift = unshift([2,3], 1)
+result.includes = includes([10, 20], 10)
+result.index_of = index_of(["a", "b", "c"], "b")
+result.reversed_arr = reverse([1, 2])
+result.sorted = sort([3,1,2])
+result.sliced = slice([0,1,2,3], 1, 3)
+result.concatenated = concat([1], [2,3])
+
+return result

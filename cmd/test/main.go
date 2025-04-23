@@ -5,6 +5,7 @@ import (
 	"github.com/isaeken/brickengine-go/runtime"
 	"os"
 	"path/filepath"
+	"regexp"
 	rn "runtime"
 	"runtime/debug"
 	"strings"
@@ -45,21 +46,21 @@ func main() {
 			memUsage := memEnd.Alloc - memStart.Alloc
 
 			isFailTest := strings.Contains(file, "/fails/")
+			check := checkGolden(file, result)
 
 			if isFailTest {
-				if err != nil {
+				if err != nil || check {
 					fmt.Printf("%s✅ Expected Fail%s [%s, %.2f KB]\n", green, reset, formatDuration(duration), float64(memUsage)/1024)
 					passed++
 				} else {
 					fmt.Printf("%s❌ Unexpected Pass%s [%s, %.2f KB]\n", red, reset, formatDuration(duration), float64(memUsage)/1024)
 				}
 			} else {
-				if err != nil {
+				if err != nil || !check {
 					fmt.Printf("%s❌ Failed: %v%s [%s, %.2f KB]\n", red, err, reset, formatDuration(duration), float64(memUsage)/1024)
 				} else {
 					fmt.Printf("%s✅ Passed%s [%s, %.2f KB]\n", green, reset, formatDuration(duration), float64(memUsage)/1024)
 					passed++
-					checkGolden(file, result)
 				}
 			}
 		}
@@ -85,13 +86,13 @@ func main() {
 
 			rn.ReadMemStats(&memEnd)
 			memUsage := memEnd.Alloc - memStart.Alloc
+			check := checkGolden(file, result)
 
-			if err != nil {
+			if err != nil || !check {
 				fmt.Printf("%s❌ Failed: %v%s [%s, %.2f KB]\n", red, err, reset, formatDuration(duration), float64(memUsage)/1024)
 			} else {
 				fmt.Printf("%s✅ Passed%s [%s, %.2f KB]\n", green, reset, formatDuration(duration), float64(memUsage)/1024)
 				passed++
-				checkGolden(file, result)
 			}
 		}
 	}
@@ -110,7 +111,7 @@ func formatDuration(d time.Duration) string {
 	return fmt.Sprintf("%dms", ms)
 }
 
-func checkGolden(file string, result interface{}) {
+func checkGolden(file string, result interface{}) bool {
 	goldenPath := strings.TrimSuffix(file, filepath.Ext(file)) + ".golden"
 	resultStr := fmt.Sprint(result)
 
@@ -118,18 +119,21 @@ func checkGolden(file string, result interface{}) {
 	golden := string(existing)
 
 	if golden == "" {
-		fmt.Println("    ⚠️  No golden file found")
+		fmt.Println("    ⚠️  No golden file found: " + goldenPath)
 		printIndentedOutput(resultStr)
-		return
+		return true
 	}
 
-	actual := strings.Trim(resultStr, "\n")
-	expected := strings.Trim(golden, "\n")
+	actual := normalizeGoldenOutput(strings.Trim(resultStr, "\n"))
+	expected := normalizeGoldenOutput(strings.Trim(golden, "\n"))
 
 	if actual != expected {
 		fmt.Println("    ❌ Mismatch with golden output")
 		printDiff(golden, resultStr)
+		return false
 	}
+
+	return true
 }
 
 func printIndentedOutput(output string) {
@@ -155,4 +159,14 @@ func printDiff(expected, actual string) {
 		}
 	}
 	fmt.Println()
+}
+
+func normalizeGoldenOutput(output string) string {
+	reUUID := regexp.MustCompile(`[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}`)
+	reTime := regexp.MustCompile(`\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z`)
+
+	output = reUUID.ReplaceAllString(output, "UUID")
+	output = reTime.ReplaceAllString(output, "NOW")
+
+	return output
 }

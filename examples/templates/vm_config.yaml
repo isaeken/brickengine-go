@@ -1,4 +1,4 @@
 machine:
-  name: "vm-{{ slug(vars.hostname) | random_string(5) }}"
-  ip: "{{ random_ipv4_in('10.0.0.0/24') }}"
-  mac: "{{ random_mac() }}"
+  name: "vm-{{ slug(vars.hostname) | random_string(5) | 'random-generated-string' }}"
+  ip: "{{ random_ipv4_in('10.0.0.0/24') | 'random-generated-ip4' }}"
+  mac: "{{ random_mac() | 'random-generated-mac-address' }}"

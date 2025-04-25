@@ -216,7 +216,7 @@ func HttpFunctions() Functions {
 }
 
 func DefaultFunctions() Functions {
-	return mergeFunctions([]Functions{
+	return MergeFunctions([]Functions{
 		UUIDAndFormatFunctions(),
 		StringFunctions(),
 		MathFunctions(),
@@ -227,7 +227,7 @@ func DefaultFunctions() Functions {
 	}...)
 }
 
-func mergeFunctions(fns ...Functions) Functions {
+func MergeFunctions(fns ...Functions) Functions {
 	merged := Functions{}
 	for _, fn := range fns {
 		for k, v := range fn {

@@ -69,6 +69,14 @@ func StringFunctions() Functions {
 			}
 			return string(r)
 		},
+		"random_str": func() string {
+			const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+			b := make([]byte, 8)
+			for i := range b {
+				b[i] = charset[rand.Intn(len(charset))]
+			}
+			return string(b)
+		},
 	}
 }
 
@@ -87,6 +95,18 @@ func MathFunctions() Functions {
 
 func TypeFunctions() Functions {
 	return Functions{
+		"to_str": func(v interface{}) string {
+			return fmt.Sprint(v)
+		},
+		"to_int": func(v interface{}) float64 {
+			return float64(v.(int))
+		},
+		"to_float": func(v interface{}) float64 {
+			return v.(float64)
+		},
+		"to_bool": func(v interface{}) bool {
+			return v.(bool)
+		},
 		"type_of": func(v interface{}) string {
 			switch reflect.TypeOf(v).Kind() {
 			case reflect.Slice:
